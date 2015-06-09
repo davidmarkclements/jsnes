@@ -31,6 +31,10 @@ if (typeof jQuery !== 'undefined') {
             var UI = function(nes) {
                 var self = this;
                 self.nes = nes;
+
+                self.nes.audio = {
+                  ctx: new AudioContext()
+                };
                 
                 /*
                  * Create UI
@@ -276,7 +280,23 @@ if (typeof jQuery !== 'undefined') {
                 },
             
                 writeAudio: function(samples) {
-                    return this.dynamicaudio.writeInt(samples);
+
+                    /* WARNING PUT SOUND TO A MINIMUM */
+                    var ctx = this.nes.audio.ctx;
+                    var buffer = ctx.createBuffer(2, samples.length * 2, ctx.sampleRate);
+                    var source = ctx.createBufferSource();
+                    source.buffer = buffer;
+                    var l = buffer.getChannelData(0);
+                    var r = buffer.getChannelData(1);
+                    var sample = new Float32Array(new Uint16Array(samples).buffer);
+                    
+                    l.set(sample);
+                    r.set(sample);
+                    source.connect(ctx.destination);
+                    source.start();
+    
+
+                    // return this.dynamicaudio.writeInt(samples);
                 },
             
                 writeFrame: function(buffer, prevBuffer) {
